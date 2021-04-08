@@ -13,6 +13,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using ToDoAPI.Data;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace ToDoAPI
 {
@@ -30,7 +31,12 @@ namespace ToDoAPI
         {
             services.AddControllers();
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "ToDoAPI", Version = "v1"}); });
-            services.AddDbContext<TodoContext>(opt => opt.UseInMemoryDatabase("TodoList"));
+            services.AddDbContext<TodoContext>(opt => opt.UseMySql(
+                    "server=localhost;user=becode;password=becode123;database=todoDB",
+                    new MySqlServerVersion(new Version(8, 0, 23)), mySqlOptions => mySqlOptions
+                        .CharSetBehavior(CharSetBehavior.NeverAppend))
+                .EnableSensitiveDataLogging()
+                .EnableDetailedErrors());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -42,6 +48,9 @@ namespace ToDoAPI
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "ToDoAPI v1"));
             }
+
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
 
             app.UseHttpsRedirection();
 
